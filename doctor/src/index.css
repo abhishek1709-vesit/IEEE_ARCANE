@@ -1,3 +1,232 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom styles for professional UI */
+@layer base {
+  html {
+    font-family: "Inter", sans-serif;
+  }
+}
+
+/* Dark mode styles */
+.dark {
+  background-color: #1a1a1a;
+  color: #f1f1f1;
+}
+
+.dark .bg-gray-50 {
+  background-color: #1f1f1f;
+}
+
+.dark .bg-white {
+  background-color: #2a2a2a;
+}
+
+.dark .text-gray-900 {
+  color: #ffffff;
+}
+
+.dark .text-gray-700 {
+  color: #e5e5e5;
+}
+
+.dark .text-gray-500 {
+  color: #a0a0a0;
+}
+
+.dark .text-gray-600 {
+  color: #c0c0c0;
+}
+
+.dark .border-gray-300 {
+  border-color: #404040;
+}
+
+.dark .border-gray-100 {
+  border-color: #303030;
+}
+
+.dark .bg-primary-50 {
+  background-color: #0f2537;
+}
+
+.dark .text-primary-600 {
+  color: #6ba5e8;
+}
+
+.dark .bg-red-50 {
+  background-color: #2a1515;
+}
+
+.dark .text-red-600 {
+  color: #e88a8a;
+}
+
+.dark .text-green-600 {
+  color: #8ae8a8;
+}
+
+.dark .text-yellow-600 {
+  color: #e8d48a;
+}
+
+.dark .bg-yellow-50 {
+  background-color: #2a2515;
+}
+
+.dark .text-yellow-800 {
+  color: #e8c48a;
+}
+
+.dark .bg-green-100 {
+  background-color: #152a1a;
+}
+
+.dark .text-green-600 {
+  color: #8ae8a8;
+}
+
+.dark .bg-red-500 {
+  background-color: #e84444;
+}
+
+.dark .bg-primary-600 {
+  background-color: #0284c7;
+}
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: #252525;
+}
+
+.dark .hover\:bg-primary-700:hover {
+  background-color: #0369a1;
+}
+
+.dark .hover\:bg-red-600:hover {
+  background-color: #dc2626;
+}
+
+.dark .hover\:bg-gray-200:hover {
+  background-color: #3a3a3a;
+}
+
+/* Dark mode dropdown styling */
+.dark select {
+  background-color: #2a2a2a;
+  border-color: #404040;
+  color: #f1f1f1;
+}
+
+.dark select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dark select option {
+  background-color: #1a1a1a;
+  color: #f1f1f1;
+}
+
+.dark select option:hover {
+  background-color: #3b82f6;
+}
+
+.dark select option:checked {
+  background-color: #3b82f6;
+  color: white;
+}
+
+/* Dark mode for dropdown borders */
+.dark .border-gray-300 {
+  border-color: #404040;
+}
+
+/* Dark mode for dropdown text colors */
+.dark .text-gray-700 {
+  color: #e5e5e5;
+}
+
+/* Dark mode for dropdown background */
+.dark .bg-white {
+  background-color: #2a2a2a;
+}
+
+/* Custom scrollbar for dark mode */
+.dark ::-webkit-scrollbar-track {
+  background: #151515;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6a6a6a;
+}
+
+/* Animation for smooth transitions */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Focus styles for better accessibility */
+:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Button hover effects */
+button:hover {
+  transform: translateY(-1px);
+  transition: transform 0.1s ease-in-out;
+}
+
+/* Card hover effects */
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Loading spinner enhancement */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
