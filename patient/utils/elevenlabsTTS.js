@@ -1,7 +1,7 @@
 // ElevenLabs Text-to-Speech Utility
 // This utility handles voice prompts for the daily check-in questions
 
-import { Audio } from 'expo-av';
+import { Audio } from 'expo-audio';
 import { Platform } from 'react-native';
 import * as Speech from 'expo-speech';
 

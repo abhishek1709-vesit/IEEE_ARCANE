@@ -179,9 +179,8 @@ export const getDashboard = async (req, res) => {
 
 export const getPatients = async (req, res) => {
   try {
-    const doctorId = req.user.doctorId;
-
-    const patients = await User.find({ doctorId }).select("username email _id");
+    // Fetch all patients from the database regardless of doctor assignment
+    const patients = await User.find().select("username email _id");
 
     res.status(200).json({
       patients,
