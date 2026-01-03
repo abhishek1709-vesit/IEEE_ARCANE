@@ -9,6 +9,7 @@ import {
   getMockPatientDetails,
   mockDisclaimer,
 } from "../data/mockData";
+import { transformPatientData, transformPatientSummary } from "../utils/patientDataTransformer";
 
 // Header Component
 const Header = ({ onLogout, useMockData, toggleMockData }) => {
@@ -288,7 +289,9 @@ export const DashboardRedesigned = () => {
           setDisclaimer(mockDisclaimer);
         } else {
           const data = await getDoctorDashboard(token);
-          setPatients(data.patients || []);
+          // Transform backend data to match frontend expected format
+          const transformedPatients = data.patients?.map(transformPatientData) || [];
+          setPatients(transformedPatients);
           setDisclaimer(data.disclaimer || "");
         }
       } catch (err) {
@@ -311,6 +314,8 @@ export const DashboardRedesigned = () => {
         data = getMockPatientDetails(patientId);
       } else {
         data = await getPatientSummary(token, patientId);
+        // Transform backend summary data to match frontend expected format
+        data = transformPatientSummary(data);
       }
 
       setSelectedPatient(data);

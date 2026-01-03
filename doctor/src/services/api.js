@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:5001/api/doctor";
+const API_BASE_URL = "http://localhost:5000/api/doctor";
 
 export const doctorSignup = async (doctorData) => {
   const response = await fetch(`${API_BASE_URL}/signup`, {
@@ -52,20 +52,25 @@ export const getDoctorDashboard = async (token) => {
 };
 
 export const getDoctorPatients = async (token) => {
-  const response = await fetch(`${API_BASE_URL}/patients`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/patients`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to fetch patients");
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to fetch patients");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("API Error:", error);
+    throw new Error(`Failed to fetch patients: ${error.message}. Please ensure the backend server is running and accessible.`);
   }
-
-  return await response.json();
 };
 
 export const getPatientSummary = async (token, patientId) => {

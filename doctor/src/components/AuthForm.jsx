@@ -26,30 +26,42 @@ export const AuthForm = () => {
     setError("");
 
     try {
-      // Use mock authentication for demo/testing purposes
       if (isLogin) {
-        // Simple mock login - accept any email/password for demo
-        if (formData.email && formData.password) {
-          localStorage.setItem("doctorToken", "mock-token-for-demo");
-          navigate("/dashboard");
-          return;
+        // Real doctor login
+        if (!formData.email || !formData.password) {
+          throw new Error("Please fill in all required fields");
         }
-      } else {
-        // Simple mock signup - accept any valid form data for demo
-        if (
-          formData.name &&
-          formData.email &&
-          formData.password &&
-          formData.specialization &&
-          formData.hospitalName
-        ) {
-          localStorage.setItem("doctorToken", "mock-token-for-demo");
-          navigate("/dashboard");
-          return;
-        }
-      }
 
-      throw new Error("Please fill in all required fields");
+        const response = await doctorLogin({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        localStorage.setItem("doctorToken", response.token);
+        navigate("/dashboard");
+      } else {
+        // Real doctor signup
+        if (
+          !formData.name ||
+          !formData.email ||
+          !formData.password ||
+          !formData.specialization ||
+          !formData.hospitalName
+        ) {
+          throw new Error("Please fill in all required fields");
+        }
+
+        const response = await doctorSignup({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          specialization: formData.specialization,
+          hospitalName: formData.hospitalName,
+        });
+
+        localStorage.setItem("doctorToken", response.token);
+        navigate("/dashboard");
+      }
     } catch (err) {
       setError(err.message || "Authentication failed");
     } finally {
@@ -106,7 +118,7 @@ export const AuthForm = () => {
         )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm space-y-4 bg-white p-6 rounded-lg">
+          <div className="shadow-sm space-y-4 bg-white p-6 rounded-lg">
             {!isLogin && (
               <>
                 <div>

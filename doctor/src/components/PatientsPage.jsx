@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { mockPatients } from "../data/mockData";
+import { getDoctorPatients } from "../services/api";
+import { transformPatientData } from "../utils/patientDataTransformer";
 
 // Patient Card Component
 const PatientCard = ({ patient }) => {
@@ -156,10 +157,27 @@ export const PatientsPage = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        // Use mock data for demo
-        setPatients(mockPatients);
+        // Get doctor token from localStorage
+        const doctorToken = localStorage.getItem("doctorToken");
+        if (!doctorToken) {
+          throw new Error("No authentication token found");
+        }
+
+        // Fetch real patients from backend
+        const response = await getDoctorPatients(doctorToken);
+
+        // Transform backend data to match frontend expected format
+        const transformedPatients = response.patients.map(transformPatientData);
+
+        setPatients(transformedPatients);
       } catch (err) {
-        setError(err.message || "Failed to load patients");
+        console.error("Error fetching patients:", err);
+        // Provide more specific error message for network issues
+        if (err.message.includes("Failed to fetch") || err.message.includes("Network")) {
+          setError("Unable to connect to the server. Please ensure the backend is running and check your network connection.");
+        } else {
+          setError(err.message || "Failed to load patients");
+        }
       } finally {
         setLoading(false);
       }
