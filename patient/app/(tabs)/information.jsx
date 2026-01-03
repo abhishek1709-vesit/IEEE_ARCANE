@@ -1,10 +1,11 @@
-import { View, Text, TextInput, Alert, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TextInput, Alert, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useState, useEffect } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera, Image as ImageIcon, Trash2, X, Upload, FileText } from 'lucide-react-native';
+import { Camera, Image as ImageIcon, Trash2, X, Upload, FileText, ChevronRight, Calendar, Info } from 'lucide-react-native';
 import { createReport, getUserReports, deleteReport, formatFileSize } from '../../services/reportService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+
+const { width } = Dimensions.get('window');
 
 export default function InformationScreen() {
   const [title, setTitle] = useState('');
@@ -16,7 +17,8 @@ export default function InformationScreen() {
   const [activeTab, setActiveTab] = useState('upload');
 
   const insets = useSafeAreaInsets();
-  const tabBarHeight = useBottomTabBarHeight();
+  // Fallback padding if not in a tab bar, ensures content isn't cut off
+  const bottomPadding = insets.bottom > 0 ? insets.bottom + 20 : 100;
 
   useEffect(() => {
     (async () => {
@@ -25,7 +27,6 @@ export default function InformationScreen() {
         Alert.alert('Permission required', 'Camera roll permission is required to upload images');
       }
     })();
-
     fetchReports();
   }, []);
 
@@ -36,33 +37,26 @@ export default function InformationScreen() {
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
-        base64: false,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const selectedImage = result.assets[0];
-        setImage(selectedImage);
+        setImage(result.assets[0]);
       }
     } catch (error) {
-      console.error('Image picker error:', error);
       Alert.alert('Error', 'Failed to pick image');
     }
   };
 
-  const removeImage = () => {
-    setImage(null);
-  };
+  const removeImage = () => setImage(null);
 
   const handleSubmit = async () => {
     if (!image) {
       Alert.alert('Error', 'Please select an image to upload');
       return;
     }
-
     setLoading(true);
     try {
       const result = await createReport(image.uri, title, description);
-
       if (result.success) {
         Alert.alert('Success', 'Report uploaded successfully!');
         setTitle('');
@@ -74,8 +68,7 @@ export default function InformationScreen() {
         Alert.alert('Error', result.error || 'Failed to upload report');
       }
     } catch (error) {
-      Alert.alert('Error', 'An error occurred while uploading the report');
-      console.error('Report upload error:', error);
+      Alert.alert('Error', 'An error occurred while uploading');
     } finally {
       setLoading(false);
     }
@@ -85,285 +78,179 @@ export default function InformationScreen() {
     try {
       setRefreshing(true);
       const result = await getUserReports();
-
-      if (result.success) {
-        setReports(result.data);
-      }
+      if (result.success) setReports(result.data);
     } catch (error) {
-      console.error('Error fetching reports:', error);
       Alert.alert('Error', 'Failed to fetch reports');
     } finally {
       setRefreshing(false);
     }
   };
 
-  const handleDeleteReport = async (reportId) => {
-    Alert.alert(
-      'Delete Report',
-      'Are you sure you want to delete this report?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const result = await deleteReport(reportId);
-              if (result.success) {
-                Alert.alert('Success', 'Report deleted successfully');
-                fetchReports();
-              } else {
-                Alert.alert('Error', result.error || 'Failed to delete report');
-              }
-            } catch (error) {
-              console.error('Error deleting report:', error);
-              Alert.alert('Error', 'Failed to delete report');
-            }
-          },
+  const handleDeleteReport = (reportId) => {
+    Alert.alert('Delete Report', 'This action cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          const result = await deleteReport(reportId);
+          if (result.success) fetchReports();
         },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-slate-50">
       {/* Header */}
       <View 
-        style={{ paddingTop: insets.top + 16 }}
-        className="px-6 pb-6 bg-blue-500"
+        style={{ paddingTop: insets.top + 20 }}
+        className="px-6 pb-10 bg-blue-600 rounded-b-[40px]"
       >
-        <View className="flex-row items-center mb-2">
-          <View className="bg-white p-2 rounded-full mr-3">
-            <FileText size={24} color="#3b82f6" />
+        <View className="flex-row items-center justify-between">
+          <View>
+            <Text className="text-3xl font-bold text-white">Reports</Text>
+            <Text className="text-blue-100 text-sm mt-1">Medical records & documentation</Text>
           </View>
-          <Text className="text-2xl font-bold text-white">Health Reports</Text>
+          <View className="bg-white/20 p-3 rounded-2xl">
+            <FileText size={28} color="#ffffff" />
+          </View>
         </View>
-        <Text className="text-blue-50 text-sm">Upload and manage your medical reports</Text>
       </View>
 
-      {/* Tab Switcher */}
-      <View className="px-6 -mt-4 mb-4">
-        <View className="bg-white rounded-xl shadow-sm p-1 flex-row">
+      {/* Modern Tab Switcher */}
+      <View className="px-6 -mt-7 mb-6">
+        <View className="bg-white rounded-3xl shadow-md shadow-slate-200 p-1.5 flex-row">
           <TouchableOpacity
-            className={`flex-1 py-3.5 rounded-lg items-center ${
-              activeTab === 'upload' ? 'bg-blue-500' : 'bg-transparent'
-            }`}
             onPress={() => setActiveTab('upload')}
+            className={`flex-1 py-3 rounded-[22px] items-center flex-row justify-center ${activeTab === 'upload' ? 'bg-blue-600' : ''}`}
           >
-            <Text
-              className={`font-semibold text-sm ${
-                activeTab === 'upload' ? 'text-white' : 'text-gray-600'
-              }`}
-            >
-              Upload New
-            </Text>
+            <Upload size={16} color={activeTab === 'upload' ? 'white' : '#64748b'} />
+            <Text className={`font-bold ml-2 text-sm ${activeTab === 'upload' ? 'text-white' : 'text-slate-500'}`}>Upload</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className={`flex-1 py-3.5 rounded-lg items-center ${
-              activeTab === 'gallery' ? 'bg-blue-500' : 'bg-transparent'
-            }`}
             onPress={() => setActiveTab('gallery')}
+            className={`flex-1 py-3 rounded-[22px] items-center flex-row justify-center ${activeTab === 'gallery' ? 'bg-blue-600' : ''}`}
           >
-            <Text
-              className={`font-semibold text-sm ${
-                activeTab === 'gallery' ? 'text-white' : 'text-gray-600'
-              }`}
-            >
-              My Reports
-            </Text>
+            <ImageIcon size={16} color={activeTab === 'gallery' ? 'white' : '#64748b'} />
+            <Text className={`font-bold ml-2 text-sm ${activeTab === 'gallery' ? 'text-white' : 'text-slate-500'}`}>Archive</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
-        className="flex-1"
-        contentContainerStyle={{
-          paddingHorizontal: 24,
-          paddingBottom: tabBarHeight + 24,
-        }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomPadding }}
       >
         {activeTab === 'upload' ? (
           <View>
-            {/* Image Upload Card */}
-            <View className="bg-white rounded-xl shadow-sm p-4 mb-4">
-              <View className="flex-row items-center mb-3">
-                <View className="bg-blue-50 p-1.5 rounded-lg mr-2">
-                  <ImageIcon size={18} color="#3b82f6" />
-                </View>
-                <Text className="text-gray-800 font-semibold text-sm">Select Image</Text>
-              </View>
-
+            {/* Image Selector */}
+            <TouchableOpacity 
+              onPress={image ? null : pickImage}
+              activeOpacity={0.9}
+              className={`bg-white rounded-[32px] p-2 border-2 border-dashed ${image ? 'border-transparent' : 'border-slate-200'} mb-5 overflow-hidden`}
+            >
               {image ? (
-                <View className="relative mb-3">
-                  <Image
-                    source={{ uri: image.uri }}
-                    className="w-full h-56 rounded-lg"
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    className="absolute top-2 right-2 bg-white rounded-full p-2 shadow-sm"
+                <View className="relative">
+                  <Image source={{ uri: image.uri }} className="w-full h-64 rounded-[28px]" resizeMode="cover" />
+                  <TouchableOpacity 
                     onPress={removeImage}
+                    className="absolute top-4 right-4 bg-white/90 p-2 rounded-full shadow-lg"
                   >
-                    <X size={18} color="#ef4444" />
+                    <X size={20} color="#ef4444" />
                   </TouchableOpacity>
-                  <View className="absolute bottom-2 right-2 bg-black/70 rounded-lg px-2 py-1">
-                    <Text className="text-white text-xs">
-                      {formatFileSize(image.fileSize || 0)}
-                    </Text>
-                  </View>
                 </View>
               ) : (
-                <View className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 items-center mb-3">
-                  <Camera size={40} color="#9ca3af" />
-                  <Text className="text-gray-500 text-sm mt-2">No image selected</Text>
+                <View className="py-12 items-center">
+                  <View className="bg-blue-50 p-5 rounded-full mb-4">
+                    <Camera size={32} color="#3b82f6" />
+                  </View>
+                  <Text className="text-slate-900 font-bold text-lg">Snap or Pick Photo</Text>
+                  <Text className="text-slate-400 text-sm mt-1">Upload JPG or PNG up to 5MB</Text>
                 </View>
               )}
+            </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={pickImage}
-                className="bg-blue-50 border-2 border-dashed border-blue-300 rounded-lg p-3 flex-row items-center justify-center"
-              >
-                <Upload size={18} color="#3b82f6" />
-                <Text className="text-blue-600 font-semibold ml-2 text-sm">
-                  {image ? 'Change Image' : 'Select Image'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Title Card */}
-            <View className="bg-white rounded-xl shadow-sm p-4 mb-4">
-              <View className="flex-row items-center mb-2">
-                <View className="bg-purple-50 p-1.5 rounded-lg mr-2">
-                  <FileText size={18} color="#9333ea" />
-                </View>
-                <Text className="text-gray-800 font-semibold text-sm">Title (Optional)</Text>
+            {/* Form Fields */}
+            <View className="bg-white rounded-[32px] p-6 shadow-sm shadow-slate-200 mb-5">
+              <Text className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-4">Report Details</Text>
+              
+              <View className="mb-4">
+                <TextInput
+                  className="bg-slate-50 rounded-2xl p-4 text-slate-900 font-medium border border-slate-100"
+                  placeholder="Report Title (e.g. Lab Results)"
+                  value={title}
+                  onChangeText={setTitle}
+                />
               </View>
-              <TextInput
-                className="bg-gray-50 rounded-lg p-3 text-gray-800 text-base border border-gray-200"
-                placeholder="e.g., Blood Test Report"
-                placeholderTextColor="#9ca3af"
-                value={title}
-                onChangeText={setTitle}
-              />
-            </View>
 
-            {/* Description Card */}
-            <View className="bg-white rounded-xl shadow-sm p-4 mb-4">
-              <View className="flex-row items-center mb-2">
-                <View className="bg-green-50 p-1.5 rounded-lg mr-2">
-                  <FileText size={18} color="#10b981" />
-                </View>
-                <Text className="text-gray-800 font-semibold text-sm">Description (Optional)</Text>
+              <View>
+                <TextInput
+                  className="bg-slate-50 rounded-2xl p-4 text-slate-900 font-medium border border-slate-100 h-24"
+                  placeholder="Add a description or notes..."
+                  value={description}
+                  onChangeText={setDescription}
+                  multiline
+                  textAlignVertical="top"
+                />
               </View>
-              <TextInput
-                className="bg-gray-50 rounded-lg p-3 text-gray-800 text-base border border-gray-200"
-                placeholder="Add notes about this report..."
-                placeholderTextColor="#9ca3af"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-              />
             </View>
 
-            {/* Upload Button */}
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={loading || !image}
-              className={`rounded-xl p-4 shadow-sm mb-4 ${
-                loading || !image ? 'bg-gray-400' : 'bg-green-500'
-              }`}
+              className={`py-4 rounded-[24px] shadow-lg flex-row justify-center items-center ${loading || !image ? 'bg-slate-300' : 'bg-green-500 shadow-green-200'}`}
             >
-              <Text className="text-white text-center font-bold text-base">
-                {loading ? 'Uploading...' : '✓ Upload Report'}
-              </Text>
+              <Text className="text-white font-bold text-lg mr-2">{loading ? 'Processing...' : 'Secure Upload'}</Text>
+              {!loading && <ChevronRight size={20} color="white" />}
             </TouchableOpacity>
-
-            {/* Info Card */}
-            <View className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-              <View className="flex-row items-center mb-2">
-                <View className="bg-blue-500 p-1 rounded-full mr-2 w-5 h-5 items-center justify-center">
-                  <Text className="text-white text-xs font-bold">i</Text>
-                </View>
-                <Text className="text-blue-800 font-semibold text-sm">Quick Guide</Text>
-              </View>
-              <Text className="text-blue-700 text-sm leading-5">
-                • Select an image from your gallery{'\n'}
-                • Add optional title and description{'\n'}
-                • Max file size: 5MB{'\n'}
-                • Supported formats: JPG, PNG
-              </Text>
-            </View>
           </View>
         ) : (
           <View>
             {reports.length === 0 ? (
-              <View className="items-center justify-center py-16">
-                <View className="bg-gray-100 p-6 rounded-full mb-4">
-                  <FileText size={48} color="#9ca3af" />
+              <View className="items-center justify-center py-20">
+                <View className="bg-slate-100 p-8 rounded-full mb-6">
+                  <FileText size={40} color="#cbd5e1" />
                 </View>
-                <Text className="text-gray-600 text-lg font-semibold mb-2">No Reports Yet</Text>
-                <Text className="text-gray-400 text-center">
-                  Upload your first medical report{'\n'}to get started
+                <Text className="text-slate-900 text-xl font-bold">No reports yet</Text>
+                <Text className="text-slate-400 text-center mt-2 px-10">
+                  Your uploaded medical documents will appear here for easy access.
                 </Text>
-                <TouchableOpacity
-                  onPress={() => setActiveTab('upload')}
-                  className="bg-blue-500 px-6 py-3 rounded-full mt-6"
-                >
-                  <Text className="text-white font-semibold">+ Upload Report</Text>
-                </TouchableOpacity>
               </View>
             ) : (
-              <View className="space-y-4">
-                {reports.map((report, index) => (
-                  <View
-                    key={index}
-                    className="bg-white rounded-xl shadow-sm overflow-hidden mb-4"
-                  >
-                    {/* Header */}
-                    <View className="bg-blue-500 p-4">
-                      <View className="flex-row items-start justify-between">
-                        <View className="flex-1 mr-3">
-                          <Text className="text-white text-lg font-bold mb-1" numberOfLines={2}>
-                            {report.title || 'Untitled Report'}
-                          </Text>
-                          {report.description && (
-                            <Text className="text-blue-50 text-sm" numberOfLines={2}>
-                              {report.description}
-                            </Text>
-                          )}
-                        </View>
-                        <TouchableOpacity
-                          className="bg-white/20 p-2 rounded-lg"
-                          onPress={() => handleDeleteReport(report._id)}
-                        >
-                          <Trash2 size={18} color="#ffffff" />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-
-                    {/* Image */}
-                    <View className="p-4">
-                      <Image
-                        source={{ uri: report.image }}
-                        className="w-full h-56 rounded-lg"
-                        resizeMode="cover"
-                      />
-                    </View>
-
-                    {/* Footer */}
-                    <View className="px-4 pb-4">
-                      <View className="flex-row items-center bg-gray-50 rounded-lg p-2">
-                        <Camera size={14} color="#6b7280" />
-                        <Text className="text-gray-600 text-xs ml-2">
-                          Uploaded: {new Date(report.createdAt).toLocaleDateString()} at {new Date(report.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              reports.map((report, index) => (
+                <View key={index} className="bg-white rounded-[32px] mb-5 overflow-hidden shadow-sm shadow-slate-200 border border-slate-100">
+                  <View className="p-5 flex-row justify-between items-center border-b border-slate-50">
+                    <View className="flex-1 mr-4">
+                      <Text className="text-slate-900 font-bold text-lg" numberOfLines={1}>
+                        {report.title || 'Untitled Report'}
+                      </Text>
+                      <View className="flex-row items-center mt-1">
+                        <Calendar size={12} color="#94a3b8" />
+                        <Text className="text-slate-400 text-[11px] ml-1 font-medium">
+                          {new Date(report.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                         </Text>
                       </View>
                     </View>
+                    <TouchableOpacity 
+                      onPress={() => handleDeleteReport(report._id)}
+                      className="bg-rose-50 p-3 rounded-2xl"
+                    >
+                      <Trash2 size={18} color="#fb7185" />
+                    </TouchableOpacity>
                   </View>
-                ))}
-              </View>
+
+                  <View className="p-2">
+                    <Image source={{ uri: report.image }} className="w-full h-48 rounded-[24px]" resizeMode="cover" />
+                  </View>
+
+                  {report.description && (
+                    <View className="px-5 pb-5 pt-2">
+                      <Text className="text-slate-500 text-sm leading-5">{report.description}</Text>
+                    </View>
+                  )}
+                </View>
+              ))
             )}
           </View>
         )}

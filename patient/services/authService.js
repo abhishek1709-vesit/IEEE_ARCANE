@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 
 // Base URL for the backend API
 const API_BASE_URL_AUTH = `${API_BASE_URL}/api/auth`;
@@ -99,5 +100,35 @@ export const isAuthenticated = async () => {
   } catch (error) {
     console.error('Auth check error:', error);
     return false;
+  }
+};
+
+// Get current user information from backend
+export const getCurrentUser = async () => {
+  try {
+    const token = await getToken();
+    if (!token) {
+      return {
+        success: false,
+        error: 'No authentication token found'
+      };
+    }
+
+    const response = await axios.get(`${API_BASE_URL_AUTH}/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    return {
+      success: true,
+      user: response.data.user
+    };
+  } catch (error) {
+    console.error('Get current user error:', error.response?.data || error.message);
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Failed to fetch user data'
+    };
   }
 };

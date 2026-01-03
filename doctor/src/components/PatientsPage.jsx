@@ -231,7 +231,7 @@ export const PatientsPage = () => {
             <div className="w-64 bg-white shadow-card rounded-lg p-6 h-full">
               <div className="mb-8">
                 <h1 className="text-xl font-bold text-primary-600">
-                  🏥 HealthSentry
+                  🏥 Health
                 </h1>
                 <p className="text-xs text-gray-500 mt-1">
                   Post-Discharge Monitoring

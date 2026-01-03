@@ -99,3 +99,36 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+// Get current user information
+export const getMe = async (req, res) => {
+  try {
+    // User ID is attached to request by verifyJWT middleware
+    const userId = req.user.userId;
+
+    // Find user in database (excluding password)
+    const user = await User.findById(userId).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        createdAt: user.createdAt,
+        // Add any other user fields that should be exposed
+      }
+    });
+  } catch (error) {
+    console.error('Error in getMe:', error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
