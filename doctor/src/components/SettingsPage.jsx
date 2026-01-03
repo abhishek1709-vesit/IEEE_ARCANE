@@ -64,9 +64,6 @@ export const SettingsPage = () => {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        // Simulate loading settings from API
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
         // Load saved settings from localStorage if available
         const savedSettings = localStorage.getItem("doctorSettings");
         if (savedSettings) {
