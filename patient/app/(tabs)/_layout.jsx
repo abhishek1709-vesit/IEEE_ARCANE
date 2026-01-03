@@ -1,6 +1,8 @@
 import { Tabs } from "expo-router";
 import { Home, Info, Pill, User } from "lucide-react-native";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StatusBar } from "expo-status-bar";
+
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -26,6 +28,7 @@ export default function TabLayout() {
         headerShown: false,
       }}
     >
+      <StatusBar style="light" />
       <Tabs.Screen
         name="home"
         options={{

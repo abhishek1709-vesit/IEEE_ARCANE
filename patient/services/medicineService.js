@@ -66,6 +66,67 @@ export const getUserMedicines = async () => {
   }
 };
 
+export const updateMedicineReminder = async (id, name, times) => {
+  try {
+    const token = await getToken();
+
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await axios.put(
+      `${API_BASE_URL_MEDICINE}/reminder/${id}`,
+      { name, times },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    return {
+      success: true,
+      data: response.data.data,
+    };
+  } catch (error) {
+    console.error('Error updating medicine reminder:', error.response?.data || error.message);
+
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Failed to update medicine reminder',
+    };
+  }
+};
+
+export const deleteMedicineReminder = async (id) => {
+  try {
+    const token = await getToken();
+
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    const response = await axios.delete(`${API_BASE_URL_MEDICINE}/reminder/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    return {
+      success: true,
+      message: response.data.message,
+    };
+  } catch (error) {
+    console.error('Error deleting medicine reminder:', error.response?.data || error.message);
+
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Failed to delete medicine reminder',
+    };
+  }
+};
+
 // Helper function to format time in 24-hour format
 export const formatTime24Hour = (date) => {
   const hours = date.getHours().toString().padStart(2, '0');

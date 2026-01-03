@@ -20,13 +20,20 @@ import {
   ChevronRight,
   Timer,
   Info,
+  Pencil,
 } from "lucide-react-native";
 import {
   createMedicineReminder,
   formatTime24Hour,
   getUserMedicines,
+  updateMedicineReminder,
+  deleteMedicineReminder
 } from "../../services/medicineService";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  scheduleMedicineReminder,
+  cancelAllMedicineReminders
+} from "../../utils/notifications";
 
 const { width } = Dimensions.get("window");
 
@@ -39,6 +46,8 @@ export default function MedicationsScreen() {
   const [medicines, setMedicines] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState("form");
+  const [editingMedicine, setEditingMedicine] = useState(null);
+  const [editMode, setEditMode] = useState(false);
 
   const insets = useSafeAreaInsets();
   const bottomPadding = insets.bottom > 0 ? insets.bottom + 20 : 100;
@@ -73,19 +82,83 @@ export default function MedicationsScreen() {
 
     setLoading(true);
     try {
-      const result = await createMedicineReminder(medicineName, times);
+      let result;
+      if (editMode && editingMedicine) {
+        // Update existing medicine
+        result = await updateMedicineReminder(editingMedicine._id, medicineName, times);
+        if (result.success) {
+          Alert.alert("Success", "Reminder updated!");
+          // Cancel old notifications and schedule new ones
+          await cancelAllMedicineReminders();
+          for (const time of times) {
+            await scheduleMedicineReminder(time, medicineName);
+          }
+        }
+      } else {
+        // Create new medicine
+        result = await createMedicineReminder(medicineName, times);
+        if (result.success) {
+          // Schedule notifications for each time
+          for (const time of times) {
+            await scheduleMedicineReminder(time, medicineName);
+          }
+          Alert.alert("Success", "Reminder active!");
+        }
+      }
+
       if (result.success) {
-        Alert.alert("Success", "Reminder active!");
         setMedicineName("");
         setTimes([]);
+        setEditMode(false);
+        setEditingMedicine(null);
         fetchMedicines();
         setActiveTab("reminders");
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to create reminder");
+      Alert.alert("Error", "Failed to save reminder");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditMedicine = (medicine) => {
+    setEditingMedicine(medicine);
+    setMedicineName(medicine.name);
+    setTimes([...medicine.times]);
+    setEditMode(true);
+    setActiveTab("form");
+  };
+
+  const handleDeleteMedicine = async (medicineId) => {
+    Alert.alert(
+      "Delete Reminder",
+      "Are you sure you want to delete this medicine reminder?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const result = await deleteMedicineReminder(medicineId);
+              if (result.success) {
+                Alert.alert("Success", "Reminder deleted!");
+                // Cancel the notifications for this medicine
+                await cancelAllMedicineReminders();
+                fetchMedicines();
+              } else {
+                Alert.alert("Error", result.error || "Failed to delete reminder");
+              }
+            } catch (error) {
+              Alert.alert("Error", "Failed to delete reminder");
+            }
+          }
+        }
+      ]
+    );
   };
 
   const calculateTimeRemaining = (timeString) => {
@@ -169,7 +242,7 @@ export default function MedicationsScreen() {
                 activeTab === "form" ? "text-white" : "text-slate-500"
               }`}
             >
-              Add New
+              {editMode ? "Edit" : "Add New"}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -273,7 +346,7 @@ export default function MedicationsScreen() {
               }`}
             >
               <Text className="text-white font-bold text-lg mr-2 leading-[22px]">
-                {loading ? "Saving..." : "Activate Reminder"}
+                {loading ? "Saving..." : editMode ? "Update Reminder" : "Activate Reminder"}
               </Text>
               {!loading && (
                 <View className="mt-[2px]">
@@ -336,9 +409,20 @@ export default function MedicationsScreen() {
                             {nextTime}
                           </Text>
                         </View>
-                        <TouchableOpacity className="bg-blue-600 h-10 w-10 rounded-full items-center justify-center">
-                          <ChevronRight size={20} color="white" />
-                        </TouchableOpacity>
+                        <View className="flex-row gap-2">
+                          <TouchableOpacity
+                            onPress={() => handleEditMedicine(medicine)}
+                            className="bg-yellow-500 h-10 w-10 rounded-full items-center justify-center"
+                          >
+                            <Pencil size={20} color="white" />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => handleDeleteMedicine(medicine._id)}
+                            className="bg-red-500 h-10 w-10 rounded-full items-center justify-center"
+                          >
+                            <Trash2 size={20} color="white" />
+                          </TouchableOpacity>
+                        </View>
                       </View>
                     </View>
 

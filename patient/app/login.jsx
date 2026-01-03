@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { loginUser } from '../services/authService';
 import { Mail, Lock } from 'lucide-react-native';
+import { requestNotificationPermissions } from '../utils/notifications';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -21,6 +22,12 @@ export default function LoginScreen() {
       const result = await loginUser(email, password);
 
       if (result.success) {
+        // Request notification permissions after successful login
+        const permissionsGranted = await requestNotificationPermissions();
+        if (!permissionsGranted) {
+          console.log('Notification permissions not granted');
+        }
+
         router.replace('/(tabs)/home');
       } else {
         Alert.alert('Login Failed', result.error || 'Invalid credentials');

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useDailyCheckInStatus } from '../../hooks/useDailyCheckInStatus';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HeartPulse, CalendarCheck, ChevronRight, Star, Activity, Mic2, BarChart3, Clock } from 'lucide-react-native';
+import { scheduleDailyCheckInReminder } from '../../utils/notifications';
 
 const { width } = Dimensions.get('window');
 
@@ -19,6 +20,13 @@ export default function HomeScreen() {
   const handleStartCheckIn = () => {
     router.push('/DailyCheckInScreen');
   };
+
+  // Schedule daily check-in reminder when component mounts if check-in is not completed
+  useEffect(() => {
+    if (!checkInCompleted && !isLoading && !error) {
+      scheduleDailyCheckInReminder();
+    }
+  }, [checkInCompleted, isLoading, error]);
 
   if (isLoading) {
     return (
