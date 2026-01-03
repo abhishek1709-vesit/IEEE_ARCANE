@@ -1,7 +1,8 @@
 import { getToken } from './authService';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
-const API_BASE_URL = 'https://overweening-unmomentously-garfield.ngrok-free.dev/api/reports';
+const API_BASE_URL_REPORTS = `${API_BASE_URL}/api/reports`;
 
 export const createReport = async (imageUri, title = '', description = '') => {
   try {
@@ -28,7 +29,7 @@ export const createReport = async (imageUri, title = '', description = '') => {
     if (title) formData.append('title', title);
     if (description) formData.append('description', description);
 
-    const response = await axios.post(`${API_BASE_URL}/create`, formData, {
+    const response = await axios.post(`${API_BASE_URL_REPORTS}/create`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         Authorization: `Bearer ${token}`,
@@ -57,7 +58,7 @@ export const getUserReports = async () => {
       throw new Error('No authentication token found');
     }
 
-    const response = await axios.get(`${API_BASE_URL}/my-reports`, {
+    const response = await axios.get(`${API_BASE_URL_REPORTS}/my-reports`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -85,7 +86,7 @@ export const deleteReport = async (reportId) => {
       throw new Error('No authentication token found');
     }
 
-    const response = await axios.delete(`${API_BASE_URL}/${reportId}`, {
+    const response = await axios.delete(`${API_BASE_URL_REPORTS}/${reportId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

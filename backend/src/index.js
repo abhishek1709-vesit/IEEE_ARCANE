@@ -5,6 +5,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import medicineRoutes from "./routes/medicine.routes.js";
 import reportRoutes from "./routes/report.routes.js";
+import checkinRoutes from "./routes/checkin.routes.js";
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/uploads', express.static('uploads'));
 app.use("/api/auth", authRoutes);
 app.use("/api/medicine", medicineRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/checkin", checkinRoutes);
 
 connectDB();
 

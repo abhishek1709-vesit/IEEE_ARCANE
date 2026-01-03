@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { getToken } from './authService';
+import { API_BASE_URL } from '../config/api';
 
-const API_BASE_URL = 'https://overweening-unmomentously-garfield.ngrok-free.dev/api/medicine';
+const API_BASE_URL_MEDICINE = `${API_BASE_URL}/api/medicine`;
 
 export const createMedicineReminder = async (name, times) => {
   try {
@@ -13,7 +14,7 @@ export const createMedicineReminder = async (name, times) => {
     }
 
     const response = await axios.post(
-      `${API_BASE_URL}/reminder/create`,
+      `${API_BASE_URL_MEDICINE}/reminder/create`,
       { name, times },
       {
         headers: {
@@ -45,7 +46,7 @@ export const getUserMedicines = async () => {
       throw new Error('No authentication token found');
     }
 
-    const response = await axios.get(`${API_BASE_URL}/reminders`, {
+    const response = await axios.get(`${API_BASE_URL_MEDICINE}/reminders`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

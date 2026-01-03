@@ -1,8 +1,8 @@
+import { API_BASE_URL } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 
 // Base URL for the backend API
-const API_BASE_URL = 'https://overweening-unmomentously-garfield.ngrok-free.dev/api/auth';
+const API_BASE_URL_AUTH = `${API_BASE_URL}/api/auth`;
 
 // Store token in AsyncStorage
 export const storeToken = async (token) => {
@@ -19,6 +19,7 @@ export const storeToken = async (token) => {
 export const getToken = async () => {
   try {
     const token = await AsyncStorage.getItem('token');
+    console.log('Retrieved token:', token);
     return token;
   } catch (error) {
     console.error('Error getting token:', error);
@@ -40,7 +41,7 @@ export const removeToken = async () => {
 // Register user
 export const registerUser = async (username, email, password) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/register`, {
+    const response = await axios.post(`${API_BASE_URL_AUTH}/register`, {
       username,
       email,
       password
@@ -67,7 +68,7 @@ export const registerUser = async (username, email, password) => {
 // Login user
 export const loginUser = async (email, password) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/login`, {
+    const response = await axios.post(`${API_BASE_URL_AUTH}/login`, {
       email,
       password
     });
