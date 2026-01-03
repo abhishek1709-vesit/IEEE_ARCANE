@@ -343,7 +343,7 @@ export const DashboardRedesigned = () => {
     );
   }
 
-  if (error) {
+            if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg relative max-w-md">
@@ -354,12 +354,6 @@ export const DashboardRedesigned = () => {
                 Please check your internet connection and try again.
               </p>
             </div>
-            <button
-              onClick={() => window.location.reload()}
-              className="ml-4 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
-            >
-              Retry
-            </button>
           </div>
         </div>
       </div>
@@ -396,12 +390,13 @@ export const DashboardRedesigned = () => {
               onPatientClick={handlePatientClick}
             />
 
-            {/* Main Content Area */}
+              {/* Main Content Area */}
             <div className="bg-white shadow-card rounded-lg">
               {selectedPatient ? (
                 <PatientDetailViewRedesigned
                   patient={selectedPatient}
                   onBack={handleBackToOverview}
+                  token={localStorage.getItem("doctorToken")}
                 />
               ) : (
                 <PatientOverviewTableRedesigned
