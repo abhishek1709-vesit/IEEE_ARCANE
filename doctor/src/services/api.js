@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://localhost:5000/api/doctor";
+// Use relative path to leverage Vite proxy configuration
+const API_BASE_URL = "/api/doctor";
 
 export const doctorSignup = async (doctorData) => {
   const response = await fetch(`${API_BASE_URL}/signup`, {
@@ -85,6 +86,28 @@ export const getPatientSummary = async (token, patientId) => {
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.message || "Failed to fetch patient summary");
+  }
+
+  return await response.json();
+};
+
+export const createBill = async (token, patientId, description, amount) => {
+  const response = await fetch(`${API_BASE_URL}/bills/create`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      patientId,
+      description,
+      amount,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to create bill");
   }
 
   return await response.json();

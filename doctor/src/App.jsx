@@ -9,6 +9,8 @@ import { DashboardRedesigned } from "./components/DashboardRedesigned";
 import { PatientsPage } from "./components/PatientsPage";
 import { AlertsPage } from "./components/AlertsPage";
 import { SettingsPage } from "./components/SettingsPage";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
 function App() {
@@ -22,6 +24,7 @@ function App() {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <ToastContainer />
     </Router>
   );
 }

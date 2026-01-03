@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   LineChart,
   Line,
@@ -8,6 +8,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import BillCreationModal from "./BillCreationModal";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const TrendIndicator = ({ trend }) => {
   if (trend === "up") {
@@ -156,8 +159,21 @@ const SymptomTrendChart = ({ data }) => {
   );
 };
 
-export const PatientDetailView = ({ patient, onBack }) => {
+export const PatientDetailView = ({ patient, onBack, token }) => {
+  const [showBillModal, setShowBillModal] = useState(false);
+
   if (!patient) return null;
+
+  const handleBillSuccess = () => {
+    toast.success("Bill generated successfully", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  };
 
   // Generate mock symptom trend data
   const symptomData = Array.from({ length: 7 }, (_, i) => ({
@@ -202,12 +218,20 @@ export const PatientDetailView = ({ patient, onBack }) => {
             Comprehensive post-discharge monitoring
           </p>
         </div>
-        <button
-          onClick={onBack}
-          className="text-primary-600 hover:text-primary-900 text-sm font-medium transition-colors"
-        >
-          ← Back to Overview
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={onBack}
+            className="text-primary-600 hover:text-primary-900 text-sm font-medium transition-colors"
+          >
+            ← Back to Overview
+          </button>
+          <button
+            onClick={() => setShowBillModal(true)}
+            className="bg-primary-600 hover:bg-primary-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors"
+          >
+            Generate Bill
+          </button>
+        </div>
       </div>
 
       <div className="p-6">
@@ -335,6 +359,16 @@ export const PatientDetailView = ({ patient, onBack }) => {
           )}
         </div>
       </div>
+
+      {/* Bill Creation Modal */}
+      {showBillModal && (
+        <BillCreationModal
+          patient={patient}
+          token={token}
+          onClose={() => setShowBillModal(false)}
+          onSuccess={handleBillSuccess}
+        />
+      )}
     </div>
   );
 };

@@ -13,29 +13,23 @@ const app = express();
 // Configure CORS middleware
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      "http://localhost:3000",
-      "http://localhost:5173",
-      "http://localhost:5174",
-      "http://localhost:5175",
-      "http://localhost:5176",
-      "http://localhost:19006",
-      "exp://",
-    ];
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Allow all origins in development for easier testing
+    // In production, you should restrict this to specific domains
+    if (!origin || origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1") || origin.includes("exp://")) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      callback(null, true); // Allow all origins for development
     }
   },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin"],
+  exposedHeaders: ["Content-Length", "X-Kuma-Revision"],
   credentials: true,
   preflightContinue: false,
   optionsSuccessStatus: 200,
 };
 
+// Add CORS middleware
 app.use(cors(corsOptions));
 app.use(express.json());
 

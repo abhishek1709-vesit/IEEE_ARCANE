@@ -6,6 +6,7 @@ import {
   getPatients,
   getPatientSummary,
 } from "../controllers/doctor.controller.js";
+import { createBill } from "../controllers/bill.controller.js";
 import { requireDoctor } from "../middlewares/requireDoctor.js";
 
 const router = express.Router();
@@ -18,5 +19,8 @@ router.post("/login", login);
 router.get("/dashboard", requireDoctor, getDashboard);
 router.get("/patients", requireDoctor, getPatients);
 router.get("/patient/:id/summary", requireDoctor, getPatientSummary);
+
+// Bill routes
+router.post("/bills/create", requireDoctor, createBill);
 
 export default router;
