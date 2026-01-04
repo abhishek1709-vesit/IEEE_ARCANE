@@ -52,17 +52,6 @@ export const SettingsPage = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  // Apply dark mode from localStorage immediately on component mount
-  useEffect(() => {
-    const savedSettings = localStorage.getItem("doctorSettings");
-    if (savedSettings) {
-      const parsedSettings = JSON.parse(savedSettings);
-      if (parsedSettings.darkMode) {
-        document.documentElement.classList.add("dark");
-      }
-    }
-  }, []);
-
   useEffect(() => {
     const fetchSettings = async () => {
       try {

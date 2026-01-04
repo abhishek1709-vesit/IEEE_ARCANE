@@ -13,8 +13,22 @@ import { SettingsPage } from "./components/SettingsPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
+import { useEffect } from "react";
 
 function App() {
+  // Initialize dark mode from localStorage when app loads
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("doctorSettings");
+    if (savedSettings) {
+      const parsedSettings = JSON.parse(savedSettings);
+      if (parsedSettings.darkMode) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }, []);
+
   return (
     <Router>
       <Routes>

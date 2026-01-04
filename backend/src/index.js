@@ -14,21 +14,13 @@ const app = express();
 
 // Configure CORS middleware
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow all origins in development for easier testing
-    // In production, you should restrict this to specific domains
-    if (!origin || origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1") || origin.includes("exp://")) {
-      callback(null, true);
-    } else {
-      callback(null, true); // Allow all origins for development
-    }
-  },
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin"],
   exposedHeaders: ["Content-Length", "X-Kuma-Revision"],
   credentials: true,
   preflightContinue: false,
-  optionsSuccessStatus: 200,
+  optionsSuccessStatus: 204,
 };
 
 // Add CORS middleware
