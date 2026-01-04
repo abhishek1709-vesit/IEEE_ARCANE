@@ -29,7 +29,6 @@ export const useDailyCheckIn = () => {
                 return;
             }
 
-            console.log(token)
 
             const response = await fetch(`${API_BASE_URL}/api/checkin/today`, {
                 method: 'GET',
@@ -75,7 +74,6 @@ export const useDailyCheckIn = () => {
             try {
                 await speakText(currentQuestion.voicePrompt);
             } catch (error) {
-                console.log('ElevenLabs TTS failed, using fallback:', error);
                 await fallbackSpeak(currentQuestion.voicePrompt);
             }
         }
@@ -125,7 +123,6 @@ export const useDailyCheckIn = () => {
                 throw new Error('Not authenticated');
             }
 
-            console.log(token)
 
             // Get today's date in YYYY-MM-DD format
             const today = new Date();
@@ -157,18 +154,6 @@ export const useDailyCheckIn = () => {
                 })
             });
 
-            console.log('Check-in submission request:', {
-                url: `${API_BASE_URL}/api/checkin`,
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: {
-                    date: todayDateString,
-                    answers: answersArray
-                }
-            });
 
             if (!response.ok) {
                 const errorText = await response.text();

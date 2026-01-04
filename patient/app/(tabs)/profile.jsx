@@ -34,6 +34,7 @@ import {
   FileText,
   IndianRupee,
   Download,
+  ReceiptIndianRupee,
 } from "lucide-react-native";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -442,7 +443,7 @@ export default function ProfileScreen() {
                         bill.status === "PAID" ? "bg-green-50" : "bg-amber-50"
                       }`}
                     >
-                      <Receipt
+                      <ReceiptIndianRupee
                         size={22}
                         color={bill.status === "PAID" ? "#10b981" : "#f59e0b"}
                       />

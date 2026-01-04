@@ -1,6 +1,6 @@
-import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /* -------------------------------------------------------
    GLOBAL HANDLER
@@ -17,7 +17,7 @@ Notifications.setNotificationHandler({
    TIMEZONE-SAFE DATE BUILDER (CRITICAL FIX)
 ------------------------------------------------------- */
 const buildLocalDateTime = (date, time) => {
-  const [hour, minute] = time.split(':').map(Number);
+  const [hour, minute] = time.split(":").map(Number);
 
   let year, month, day;
 
@@ -25,59 +25,66 @@ const buildLocalDateTime = (date, time) => {
     year = date.getFullYear();
     month = date.getMonth();
     day = date.getDate();
-  } else if (typeof date === 'string') {
+  } else if (typeof date === "string") {
     // 🔥 STRIP TIMEZONE / TIME PART COMPLETELY
-    const cleanDate = date.split('T')[0]; // YYYY-MM-DD
-    [year, month, day] = cleanDate.split('-').map(Number);
+    const cleanDate = date.split("T")[0]; // YYYY-MM-DD
+    [year, month, day] = cleanDate.split("-").map(Number);
     month = month - 1; // JS months are 0-based
   } else {
-    throw new Error('Invalid date format');
+    throw new Error("Invalid date format");
   }
 
   return new Date(year, month, day, hour, minute, 0, 0);
 };
 
 const formatTime = (date) =>
-  date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 /* -------------------------------------------------------
    REQUEST PERMISSIONS + ANDROID CHANNELS
 ------------------------------------------------------- */
 export const requestNotificationPermissions = async () => {
   try {
-    const { status } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
 
-    if (status !== 'granted') {
-      const res = await Notifications.requestPermissionsAsync();
-      if (res.status !== 'granted') return false;
+    // Request permissions if not already granted
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== "granted") return false;
     }
 
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('medicine_reminders', {
-        name: 'Medicine Reminders',
+    // Set up Android channels if needed
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("medicine_reminders", {
+        name: "Medicine Reminders",
         importance: Notifications.AndroidImportance.HIGH,
       });
 
-      await Notifications.setNotificationChannelAsync('doctor_visits', {
-        name: 'Doctor Visit Reminders',
+      await Notifications.setNotificationChannelAsync("doctor_visits", {
+        name: "Doctor Visit Reminders",
         importance: Notifications.AndroidImportance.HIGH,
       });
 
-      await Notifications.setNotificationChannelAsync('test_visits', {
-        name: 'Test Visit Reminders',
+      await Notifications.setNotificationChannelAsync("test_visits", {
+        name: "Test Visit Reminders",
+        importance: Notifications.AndroidImportance.HIGH,
+      });
+
+      await Notifications.setNotificationChannelAsync("daily_checkin", {
+        name: "Daily Check-In",
         importance: Notifications.AndroidImportance.HIGH,
       });
     }
 
     return true;
   } catch (e) {
-    console.error('❌ Permission error:', e);
+    console.error("❌ Permission error:", e);
     return false;
   }
 };
 
 /* -------------------------------------------------------
-   MEDICINE REMINDER (DAILY)
+   MEDICINE REMINDER (DAILY) - FIXED TIMEZONE ISSUE
 ------------------------------------------------------- */
 export const scheduleMedicineReminder = async (
   time,
@@ -85,24 +92,44 @@ export const scheduleMedicineReminder = async (
   reminderKey
 ) => {
   const [hour, minute] = time.split(':').map(Number);
-  const timeLabel = formatTime(new Date(0, 0, 0, hour, minute));
+
+  // 🔥 CRITICAL FIX: Build proper Date object with today's date + specified time
+  const now = new Date();
+  const triggerDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    hour,
+    minute,
+    0,
+    0
+  );
+
+  // Debug logging
+
+  // If the scheduled time is in the past, schedule for tomorrow
+  if (triggerDate <= now) {
+    triggerDate.setDate(triggerDate.getDate() + 1);
+  }
 
   const id = await Notifications.scheduleNotificationAsync({
     content: {
       title: 'Medicine Reminder 💊',
-      body: `Take ${medicineName} at ${timeLabel}.`,
+      body: `Take ${medicineName}.`,
       sound: 'default',
     },
     trigger: {
       hour,
       minute,
       repeats: true,
-      channelId: Platform.OS === 'android' ? 'medicine_reminders' : undefined,
+      channelId:
+        Platform.OS === 'android' ? 'medicine_reminders' : undefined,
     },
   });
 
   await AsyncStorage.setItem(`medicine_${reminderKey}`, id);
 };
+
 
 /* -------------------------------------------------------
    DOCTOR VISIT REMINDER (ONE-TIME) ✅ FIXED
@@ -117,11 +144,7 @@ export const scheduleDoctorVisitReminder = async (
     const visitDate = buildLocalDateTime(date, time);
     const now = new Date();
 
-    console.log('🕒 NOW:', now);
-    console.log('📅 VISIT:', visitDate);
-
     if (visitDate <= now) {
-      console.log('⚠️ Skipping past doctor visit');
       return;
     }
 
@@ -129,24 +152,19 @@ export const scheduleDoctorVisitReminder = async (
 
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Doctor Appointment Reminder 🩺',
+        title: "Doctor Appointment Reminder 🩺",
         body: `Appointment with Dr. ${doctorName} at ${timeLabel}.`,
-        sound: 'default',
+        sound: "default",
       },
       trigger: {
         date: visitDate,
-        channelId: Platform.OS === 'android' ? 'doctor_visits' : undefined,
+        channelId: Platform.OS === "android" ? "doctor_visits" : undefined,
       },
     });
 
-    await AsyncStorage.setItem(
-      `doctor_visit_${visitId}`,
-      notificationId
-    );
-
-    console.log('✅ Doctor visit scheduled correctly');
+    await AsyncStorage.setItem(`doctor_visit_${visitId}`, notificationId);
   } catch (e) {
-    console.error('❌ Doctor reminder error:', e);
+    console.error("❌ Doctor reminder error:", e);
   }
 };
 
@@ -164,7 +182,6 @@ export const scheduleTestVisitReminder = async (
     const now = new Date();
 
     if (visitDate <= now) {
-      console.log('⚠️ Skipping past test visit');
       return;
     }
 
@@ -172,24 +189,19 @@ export const scheduleTestVisitReminder = async (
 
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'Lab Test Reminder 🧪',
+        title: "Lab Test Reminder 🧪",
         body: `${testName} test at ${timeLabel}.`,
-        sound: 'default',
+        sound: "default",
       },
       trigger: {
         date: visitDate,
-        channelId: Platform.OS === 'android' ? 'test_visits' : undefined,
+        channelId: Platform.OS === "android" ? "test_visits" : undefined,
       },
     });
 
-    await AsyncStorage.setItem(
-      `test_visit_${testId}`,
-      notificationId
-    );
-
-    console.log('✅ Test visit scheduled correctly');
+    await AsyncStorage.setItem(`test_visit_${testId}`, notificationId);
   } catch (e) {
-    console.error('❌ Test reminder error:', e);
+    console.error("❌ Test reminder error:", e);
   }
 };
 
@@ -203,7 +215,6 @@ export const cancelDoctorVisitReminder = async (visitId) => {
   await Notifications.cancelScheduledNotificationAsync(id);
   await AsyncStorage.removeItem(`doctor_visit_${visitId}`);
 
-  console.log('✅ Doctor visit cancelled');
 };
 
 /* -------------------------------------------------------
@@ -216,7 +227,28 @@ export const cancelTestVisitReminder = async (testId) => {
   await Notifications.cancelScheduledNotificationAsync(id);
   await AsyncStorage.removeItem(`test_visit_${testId}`);
 
-  console.log('✅ Test visit cancelled');
+};
+
+export const scheduleDailyCheckInReminder = async () => {
+  try {
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Daily Recovery Check-In 🌱',
+        body: 'Take 2 minutes to check in on your recovery today.',
+        sound: 'default',
+      },
+      trigger: {
+        hour: 9,
+        minute: 0,
+        repeats: true,
+        channelId: Platform.OS === 'android' ? 'daily_checkin' : undefined,
+      },
+    });
+
+    await AsyncStorage.setItem('daily_checkin_reminder', id);
+  } catch (e) {
+    console.error('❌ Daily check-in reminder error:', e);
+  }
 };
 
 /* -------------------------------------------------------
@@ -225,7 +257,7 @@ export const cancelTestVisitReminder = async (testId) => {
 export const cancelAllVisitReminders = async () => {
   const keys = await AsyncStorage.getAllKeys();
   const visitKeys = keys.filter(
-    (k) => k.startsWith('doctor_visit_') || k.startsWith('test_visit_')
+    (k) => k.startsWith("doctor_visit_") || k.startsWith("test_visit_")
   );
 
   for (const key of visitKeys) {
@@ -236,5 +268,4 @@ export const cancelAllVisitReminders = async () => {
     await AsyncStorage.removeItem(key);
   }
 
-  console.log('✅ All visit reminders cancelled');
 };

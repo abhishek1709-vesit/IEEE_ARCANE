@@ -25,7 +25,6 @@ export const initTTS = async () => {
     try {
         // For expo-speech, we don't need to set audio mode or request permissions
         // as it handles this internally
-        console.log('TTS initialized successfully');
         return true;
     } catch (error) {
         console.error('Error initializing TTS:', error);
@@ -36,13 +35,11 @@ export const initTTS = async () => {
 // Fallback TTS using device built-in speech synthesis
 export const fallbackSpeak = async (text) => {
     if (isMuted || isPlaying) {
-        console.log('TTS: Muted or already playing, skipping');
         return;
     }
 
     try {
         isPlaying = true;
-        console.log('TTS: Starting speech for:', text);
 
         // Use SpeechSynthesis API if available (web)
         if (Platform.OS === 'web' && 'speechSynthesis' in window) {
@@ -54,13 +51,11 @@ export const fallbackSpeak = async (text) => {
 
                 utterance.onend = () => {
                     isPlaying = false;
-                    console.log('TTS: Web speech completed');
                     resolve();
                 };
 
                 utterance.onerror = () => {
                     isPlaying = false;
-                    console.log('TTS: Web speech error');
                     resolve();
                 };
 
@@ -68,7 +63,6 @@ export const fallbackSpeak = async (text) => {
             });
         } else {
             // On mobile, use expo-speech for native TTS
-            console.log('TTS: Using expo-speech on mobile');
 
             // Stop any existing speech first
             Speech.stop();
@@ -79,11 +73,9 @@ export const fallbackSpeak = async (text) => {
                     pitch: 1.2, // Slightly higher pitch for better audibility
                     rate: 0.7, // Even slower for clarity
                 });
-                console.log('TTS: Mobile speech completed successfully');
             } catch (error) {
                 console.error('TTS: Mobile speech failed:', error);
                 // Fallback to console logging if speech fails
-                console.log('TTS Fallback:', text);
             } finally {
                 isPlaying = false;
             }
@@ -97,19 +89,15 @@ export const fallbackSpeak = async (text) => {
 // Speak text using ElevenLabs API or fallback
 export const speakText = async (text) => {
     if (isMuted) {
-        console.log('TTS: Muted, skipping speech');
         return;
     }
 
     if (isPlaying) {
-        console.log('TTS: Already playing, skipping');
         return;
     }
 
     try {
-        console.log('TTS: speakText called with:', text);
         await fallbackSpeak(text);
-        console.log('TTS: speakText completed');
     } catch (error) {
         console.error('Error speaking text:', error);
         isPlaying = false;
@@ -124,11 +112,9 @@ export const toggleMute = () => {
 
 // Test TTS functionality
 export const testTTS = async () => {
-    console.log('TTS: Testing speech functionality');
     try {
         // Test with a louder, clearer message
         await fallbackSpeak('Testing text to speech. This is a test message. Can you hear me?');
-        console.log('TTS: Test completed');
     } catch (error) {
         console.error('TTS: Test failed:', error);
     }

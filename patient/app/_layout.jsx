@@ -3,10 +3,16 @@ import { useEffect } from "react";
 import { isAuthenticated } from "../services/authService";
 import { StatusBar } from "expo-status-bar";
 import "./global.css";
+import { requestNotificationPermissions } from '../utils/notifications';
 
 export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
+
+  useEffect(() => {
+  requestNotificationPermissions();
+}, []);
+
 
   useEffect(() => {
     const checkAuth = async () => {

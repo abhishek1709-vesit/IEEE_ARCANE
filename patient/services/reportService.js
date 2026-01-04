@@ -58,11 +58,13 @@ export const getUserReports = async () => {
       throw new Error('No authentication token found');
     }
 
+
     const response = await axios.get(`${API_BASE_URL_REPORTS}/my-reports`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
+
 
     return {
       success: true,
@@ -70,6 +72,45 @@ export const getUserReports = async () => {
     };
   } catch (error) {
     console.error('Error fetching reports:', error.response?.data || error.message);
+
+    // Enhanced error handling for different scenarios
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+      console.error('Response headers:', error.response.headers);
+
+      if (error.response.status === 404) {
+        return {
+          success: false,
+          error: 'Reports endpoint not found. Please check if the backend server is running and the endpoint is correct.',
+        };
+      } else if (error.response.status === 401) {
+        return {
+          success: false,
+          error: 'Unauthorized. Please login again.',
+        };
+      } else if (error.response.status === 500) {
+        return {
+          success: false,
+          error: 'Server error. Please try again later.',
+        };
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received:', error.request);
+      return {
+        success: false,
+        error: 'No response from server. Please check your internet connection and backend server status.',
+      };
+    } else {
+      // Something happened in setting up the request
+      console.error('Request setup error:', error.message);
+      return {
+        success: false,
+        error: `Failed to fetch reports: ${error.message}`,
+      };
+    }
 
     return {
       success: false,

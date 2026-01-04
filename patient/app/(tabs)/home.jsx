@@ -32,6 +32,11 @@ import {
 } from 'lucide-react-native';
 import { scheduleDailyCheckInReminder, scheduleDoctorVisitReminder, scheduleTestVisitReminder, cancelDoctorVisitReminder, cancelTestVisitReminder } from '../../utils/notifications';
 import * as Notifications from 'expo-notifications';
+
+// Debug: Check if functions are properly imported
+console.log('scheduleDailyCheckInReminder function:', typeof scheduleDailyCheckInReminder);
+console.log('scheduleDoctorVisitReminder function:', typeof scheduleDoctorVisitReminder);
+console.log('scheduleTestVisitReminder function:', typeof scheduleTestVisitReminder);
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getDoctorVisits, createDoctorVisit, deleteDoctorVisit, getTestVisits, createTestVisit, deleteTestVisit } from '../../services/visitService';
 
@@ -393,7 +398,7 @@ export default function HomeScreen() {
             <View className="bg-green-50 border border-green-100 rounded-[24px] p-6">
                <View className="flex-row items-center mb-3">
                 <Star size={16} color="#10b981" fill="#10b981" className="mr-2" />
-                <Text className="text-green-800 font-bold">Daily Goal Reached</Text>
+                <Text className="text-green-800 font-bold ml-2">Daily Goal Reached</Text>
               </View>
               <Text className="text-green-700/80 text-[15px] leading-6">Vitals and recovery markers logged.</Text>
             </View>
@@ -538,8 +543,8 @@ export default function HomeScreen() {
               activeOpacity={0.7}
               className="bg-blue-600 py-4 rounded-2xl flex-row justify-center items-center mt-2"
             >
-              <Plus size={18} color="white" className="mr-2" />
-              <Text className="text-white font-bold">Set Visit Reminder</Text>
+              <Plus size={18} color="white"/>
+              <Text className="text-white font-bold ml-2">Set Visit Reminder</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -593,7 +598,7 @@ export default function HomeScreen() {
               className="bg-white py-4 rounded-2xl flex-row justify-center items-center mt-2"
             >
               <BellRing size={18} color="#0f172a" className="mr-2" />
-              <Text className="text-slate-900 font-bold">Schedule Test Alert</Text>
+              <Text className="text-slate-900 font-bold ml-2">Schedule Test Alert</Text>
             </TouchableOpacity>
           </View>
         </View>

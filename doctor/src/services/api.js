@@ -1,5 +1,5 @@
 // Use absolute URL to directly target the backend server
-const API_BASE_URL = "http://localhost:5000/api/doctor";
+const API_BASE_URL = "https://patientmanagement-backend-lce0.onrender.com/api/doctor";
 
 export const doctorSignup = async (doctorData) => {
   const response = await fetch(`${API_BASE_URL}/signup`, {

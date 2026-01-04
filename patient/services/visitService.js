@@ -114,6 +114,7 @@ export const createTestVisit = async (testName, dateOfTest, timeOfTest) => {
       throw new Error('No authentication token found');
     }
 
+
     const response = await fetch(`${API_URL}/test-visit/create`, {
       method: 'POST',
       headers: {
@@ -127,12 +128,14 @@ export const createTestVisit = async (testName, dateOfTest, timeOfTest) => {
       })
     });
 
+    const responseData = await response.json();
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'Failed to create test visit');
     }
 
-    return await response.json();
+    return responseData;
   } catch (error) {
     console.error('Error creating test visit:', error);
     throw error;
