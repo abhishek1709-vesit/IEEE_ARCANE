@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDoctorDashboard, getPatientSummary } from "../services/api";
-import { PatientOverviewTableRedesigned } from "./PatientOverviewTableRedesigned";
 import { PatientDetailViewRedesigned } from "./PatientDetailViewRedesigned";
 import { Sidebar } from "./Sidebar";
 import {
@@ -399,10 +398,11 @@ export const DashboardRedesigned = () => {
                   token={localStorage.getItem("doctorToken")}
                 />
               ) : (
-                <PatientOverviewTableRedesigned
-                  patients={patients}
-                  onPatientClick={handlePatientClick}
-                />
+                <div className="p-6 text-center">
+                  <p className="text-gray-600">
+                    Select a patient from the Patients section to view detailed information.
+                  </p>
+                </div>
               )}
             </div>
 

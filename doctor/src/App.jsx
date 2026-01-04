@@ -7,6 +7,7 @@ import {
 import { AuthForm } from "./components/AuthForm";
 import { DashboardRedesigned } from "./components/DashboardRedesigned";
 import { PatientsPage } from "./components/PatientsPage";
+import { PatientDetailPage } from "./components/PatientDetailPage";
 import { AlertsPage } from "./components/AlertsPage";
 import { SettingsPage } from "./components/SettingsPage";
 import { ToastContainer } from "react-toastify";
@@ -20,6 +21,7 @@ function App() {
         <Route path="/" element={<AuthForm />} />
         <Route path="/dashboard" element={<DashboardRedesigned />} />
         <Route path="/patients" element={<PatientsPage />} />
+        <Route path="/patients/:patientId" element={<PatientDetailPage />} />
         <Route path="/alerts" element={<AlertsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

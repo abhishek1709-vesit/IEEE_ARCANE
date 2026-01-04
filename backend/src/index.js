@@ -7,6 +7,8 @@ import medicineRoutes from "./routes/medicine.routes.js";
 import reportRoutes from "./routes/report.routes.js";
 import checkinRoutes from "./routes/checkin.routes.js";
 import doctorRoutes from "./routes/doctor.routes.js";
+import billRoutes from "./routes/bill.routes.js";
+import visitRoutes from "./routes/visit.routes.js";
 
 const app = express();
 
@@ -42,6 +44,8 @@ app.use("/api/medicine", medicineRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/checkin", checkinRoutes);
 app.use("/api/doctor", doctorRoutes);
+app.use("/api/bills", billRoutes);
+app.use("/api/visits", visitRoutes);
 
 connectDB();
 

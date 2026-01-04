@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getDoctorPatients } from "../services/api";
+import { getDoctorDashboard } from "../services/api";
 import { transformPatientData } from "../utils/patientDataTransformer";
 
 // Patient Card Component
-const PatientCard = ({ patient }) => {
+const PatientCard = ({ patient, onClick }) => {
   const getStatusStyles = () => {
     switch (patient.trend) {
       case "IMPROVING":
@@ -32,7 +32,10 @@ const PatientCard = ({ patient }) => {
   };
 
   return (
-    <div className="bg-white shadow-card rounded-lg p-6 hover:shadow-lg transition-shadow">
+    <div
+      className="bg-white shadow-card rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+      onClick={onClick}
+    >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
@@ -163,8 +166,8 @@ export const PatientsPage = () => {
           throw new Error("No authentication token found");
         }
 
-        // Fetch real patients from backend
-        const response = await getDoctorPatients(doctorToken);
+        // Fetch enriched patient data from dashboard endpoint
+        const response = await getDoctorDashboard(doctorToken);
 
         // Transform backend data to match frontend expected format
         const transformedPatients = response.patients.map(transformPatientData);
@@ -436,7 +439,11 @@ export const PatientsPage = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {filteredPatients.map((patient) => (
-                    <PatientCard key={patient.id} patient={patient} />
+                    <PatientCard
+                      key={patient.id}
+                      patient={patient}
+                      onClick={() => navigate(`/patients/${patient.id}`)}
+                    />
                   ))}
                 </div>
               )}

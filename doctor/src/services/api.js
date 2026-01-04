@@ -1,5 +1,5 @@
-// Use relative path to leverage Vite proxy configuration
-const API_BASE_URL = "/api/doctor";
+// Use absolute URL to directly target the backend server
+const API_BASE_URL = "http://localhost:5000/api/doctor";
 
 export const doctorSignup = async (doctorData) => {
   const response = await fetch(`${API_BASE_URL}/signup`, {
@@ -75,6 +75,9 @@ export const getDoctorPatients = async (token) => {
 };
 
 export const getPatientSummary = async (token, patientId) => {
+  console.log(`Fetching patient summary for ID: ${patientId}`);
+  console.log(`Request URL: ${API_BASE_URL}/patient/${patientId}/summary`);
+
   const response = await fetch(`${API_BASE_URL}/patient/${patientId}/summary`, {
     method: "GET",
     headers: {
@@ -83,12 +86,22 @@ export const getPatientSummary = async (token, patientId) => {
     },
   });
 
+  console.log(`Response status: ${response.status}`);
+
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to fetch patient summary");
+    try {
+      const errorData = await response.json();
+      console.error("API Error response:", errorData);
+      throw new Error(errorData.message || "Failed to fetch patient summary");
+    } catch (jsonError) {
+      console.error("Failed to parse error response:", jsonError);
+      throw new Error(`Failed to fetch patient summary: HTTP ${response.status}`);
+    }
   }
 
-  return await response.json();
+  const data = await response.json();
+  console.log("API Response data:", data);
+  return data;
 };
 
 export const createBill = async (token, patientId, description, amount) => {
@@ -111,4 +124,34 @@ export const createBill = async (token, patientId, description, amount) => {
   }
 
   return await response.json();
+};
+
+export const getPatientBills = async (token, patientId) => {
+  console.log(`Fetching bills for patient ID: ${patientId}`);
+  console.log(`Request URL: ${API_BASE_URL}/bills/patient/${patientId}`);
+
+  const response = await fetch(`${API_BASE_URL}/bills/patient/${patientId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  console.log(`Bills response status: ${response.status}`);
+
+  if (!response.ok) {
+    try {
+      const errorData = await response.json();
+      console.error("Bills API Error response:", errorData);
+      throw new Error(errorData.message || "Failed to fetch patient bills");
+    } catch (jsonError) {
+      console.error("Failed to parse bills error response:", jsonError);
+      throw new Error(`Failed to fetch patient bills: HTTP ${response.status}`);
+    }
+  }
+
+  const data = await response.json();
+  console.log("Bills API Response data:", data);
+  return data;
 };

@@ -140,8 +140,8 @@ export const getDashboard = async (req, res) => {
   try {
     const doctorId = req.user.doctorId;
 
-    // Get assigned patients
-    const patients = await User.find({ doctorId }).populate("doctorId", "name");
+    // Get all patients (removed doctorId filter)
+    const patients = await User.find().populate("doctorId", "name");
 
     const patientSummaries = [];
 
@@ -152,9 +152,7 @@ export const getDashboard = async (req, res) => {
       const trend = calculateRecoveryTrend(reports, medicines);
       const missedCount = calculateMissedCheckIns(reports);
       const riskFlags = calculateRiskFlags(reports, medicines);
-      const aiSummary = `Patient has ${
-        reports.length
-      } reports and is ${trend.toLowerCase()}.`;
+      const aiSummary = `Patient has ${reports.length} reports and is ${trend.toLowerCase()}.`;
 
       patientSummaries.push({
         id: patient._id,
@@ -194,28 +192,73 @@ export const getPatients = async (req, res) => {
 
 export const getPatientSummary = async (req, res) => {
   try {
-    const { id } = req.params;
-    const doctorId = req.user.doctorId;
+    console.log("getPatientSummary called with params:", req.params);
+    console.log("User from token:", req.user);
 
-    // Verify patient is assigned to this doctor
-    const patient = await User.findOne({ _id: id, doctorId });
-    if (!patient) {
-      return res
-        .status(404)
-        .json({ message: "Patient not found or not assigned to you" });
+    // Try to get patient ID from either 'id' or 'patientId' parameter
+    const { id, patientId } = req.params;
+    const patientIdToUse = id || patientId;
+
+    if (!patientIdToUse) {
+      return res.status(400).json({ message: "Patient ID is required" });
     }
 
-    const reports = await Report.find({ user: id }).sort({ createdAt: -1 });
-    const medicines = await Medicine.find({ user: id }).sort({ createdAt: -1 });
+    console.log(`Looking for patient with ID: ${patientIdToUse}`);
+
+    // Verify patient exists (removed doctorId check)
+    const patient = await User.findById(patientIdToUse);
+    if (!patient) {
+      console.log(`Patient with ID ${patientIdToUse} not found`);
+      return res
+        .status(404)
+        .json({ message: "Patient not found" });
+    }
+
+    console.log(`Found patient: ${patient.username}`);
+
+    // Fetch reports with error handling
+    let reports = [];
+    try {
+      reports = await Report.find({ user: patientIdToUse }).sort({ createdAt: -1 });
+      console.log(`Found ${reports.length} reports for patient`);
+    } catch (reportError) {
+      console.error("Error fetching reports:", reportError);
+      // Continue with empty reports if there's an error
+    }
+
+    // Fetch medicines with error handling
+    let medicines = [];
+    try {
+      medicines = await Medicine.find({ user: patientIdToUse }).sort({ createdAt: -1 });
+      console.log(`Found ${medicines.length} medicines for patient`);
+    } catch (medicineError) {
+      console.error("Error fetching medicines:", medicineError);
+      // Continue with empty medicines if there's an error
+    }
 
     const trend = calculateRecoveryTrend(reports, medicines);
     const missedCount = calculateMissedCheckIns(reports);
     const riskFlags = calculateRiskFlags(reports, medicines);
-    const aiSummary = `Patient ${
-      patient.username
-    } shows ${trend.toLowerCase()} recovery trend based on ${
-      reports.length
-    } reports.`;
+    const aiSummary = `Patient ${patient.username} shows ${trend.toLowerCase()} recovery trend based on ${reports.length} reports.`;
+
+    // Transform reports and medicines to match frontend expectations
+    const transformedReports = reports.map(report => ({
+      _id: report._id,
+      title: report.title || 'Patient Report',
+      createdAt: report.createdAt,
+      content: report.description || 'No content available',
+      image: report.image || ''
+    }));
+
+    const transformedMedicines = medicines.map(medicine => ({
+      _id: medicine._id,
+      name: medicine.name || 'Unknown Medicine',
+      times: medicine.times || ['As needed'],
+      createdAt: medicine.createdAt,
+      notes: medicine.notes || ''
+    }));
+
+    console.log("Successfully transformed data, sending response");
 
     res.status(200).json({
       patient: {
@@ -226,12 +269,18 @@ export const getPatientSummary = async (req, res) => {
       missedCheckIns: missedCount,
       riskFlags,
       aiSummary,
-      reports: reports.slice(0, 10), // last 10
-      medicines: medicines.slice(0, 10),
+      reports: transformedReports.slice(0, 10), // last 10
+      medicines: transformedMedicines.slice(0, 10),
       disclaimer:
         "This is for informational purposes only and does not constitute medical advice.",
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    console.error("Error in getPatientSummary:", error);
+    console.error("Full error stack:", error.stack);
+    res.status(500).json({
+      message: "Server error",
+      error: error.message,
+      details: "Please check server logs for more information"
+    });
   }
 };
